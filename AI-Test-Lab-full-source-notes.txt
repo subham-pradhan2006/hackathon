@@ -1,0 +1,796 @@
+Explain SafetyGuard AI AI Test Lab in complete practical detail, including image upload, video upload and annotated MP4 processing, choosing active AI checks, model predictions, confidence, image/video outputs, simulated smoke/temperature sensors, differences from live incidents, security and complete viva demonstration.
+
+Worked for 1m 54s
+SafetyGuard AI — AI Test Lab, Image/Video Analysis & Sensor Simulation
+Module 8 · Complete practical explanation, model predictions, annotated results, synthetic sensor testing and viva demonstration
+
+The AI Test Lab is the testing and experimentation section of your SafetyGuard AI project. It allows you to examine how installed YOLO models respond to uploaded images or videos without connecting a live factory camera.
+
+It also includes a synthetic sensor experiment, where you enter example smoke and temperature readings to demonstrate how threshold-based incidents would work.
+
+I checked the actual implementation in your latest operational release, including app.py, video_analysis.py and the AI Test Lab interface.
+
+1. Why do we need an AI Test Lab?
+Imagine that a factory manager wants to test the system before connecting it to CCTV cameras. They have an old photograph showing workers wearing safety equipment and a short recording of a production area.
+
+They can use the AI Test Lab to find out which configured objects the models detect, whether an annotated output can be generated and whether model compatibility problems occur.
+
+Image Lab
+
+Test one photograph
+Video Lab
+
+Analyze recorded footage
+Sensor Lab
+
+Test simulated readings
+These three functions have different outputs.
+
+Function
+
+Uses actual YOLO inference?
+
+Creates an incident?
+
+Image analysis
+
+Yes, with supported models
+
+No
+
+Recorded-video analysis
+
+Yes, with supported models
+
+No
+
+Synthetic sensor experiment
+
+No, uses simple threshold rules
+
+Yes, explicitly marked TEST
+
+This distinction is essential for your viva.
+
+2. AI Image Lab — analyzing a photograph
+The first section is called AI image lab · test with factory photos.
+
+It accepts a photograph and passes it through the configured detection models.
+
+For example, suppose you upload a photograph of a construction worker wearing a helmet and vest.
+
+The image detector might report recognized safety equipment, potential violations or no supported detections, depending on the model and selected checks.
+
+Supported image formats
+Requirement
+
+Supported configuration
+
+File formats
+
+JPG/JPEG, PNG, WebP
+
+Maximum upload size
+
+8 MB
+
+Maximum input resolution
+
+24 megapixels
+
+Processing width
+
+Resized to 1280 pixels if wider
+
+AI inference size
+
+640 pixels
+
+Output
+
+Annotated JPEG and detection results
+
+The server verifies that the file can actually be decoded as an image. Simply renaming an invalid file to .jpg will not make it a valid image.
+
+How to upload an image practically
+Example experiment — Helmet Detection
+
+Camera policy	Camera 1
+Selected check	
+MISSING_HELMET
+
+Test image	A permitted PPE demonstration photograph
+Action	Analyze photo
+Expected output type	Annotated image and prediction summary
+First open Camera Network → Safety checks, select Camera 1, enable a supported helmet check and save the policy. Then open AI Test Lab, choose your image and click Analyze photo.
+
+The result area reports the number of selected-check detections, potential violations and the camera policy used.
+
+It also displays the annotated image when the server successfully encodes it.
+
+What does the annotated result look like?
+
+Illustration only. The boxes, labels and confidence scores are hypothetical and are not actual predictions from your system.
+Your actual model determines the labels and confidence scores. The program does not generate these values arbitrarily.
+
+What happens inside the Python backend?
+The API endpoint is:
+
+POST /api/images/analyze
+
+The backend validates the image, decodes it using OpenCV, retrieves the selected camera's check policy, runs the relevant YOLO models and filters unsupported or unselected classes.
+
+It then draws bounding boxes and returns the detections together with a Base64-encoded annotated JPEG.
+
+The image is stamped with a warning indicating that this is sample analysis, unconfirmed and not recorded as an incident.
+
+Does uploading an image send a notification?
+No. The image analysis endpoint explicitly returns:
+
+{
+  "source": "UPLOADED_SAMPLE",
+  "saved_as_incident": false
+}
+
+The full response also includes the selected checks, detections, potential violation count and annotated image data.
+
+That means image testing is separate from the live-camera incident system. It is useful for model demonstration without creating artificial factory incidents.
+
+3. Selecting the correct AI checks for image testing
+Your project deliberately uses strict class selection.
+
+This means the system should display only detections relevant to the chosen camera's saved safety checks.
+
+Imagine a YOLO model contains Helmet, Vest, Gloves and Mask classes.
+
+If your camera policy enables only Helmet detection, the image lab should not suddenly report Gloves or Mask violations.
+
+Selected check
+
+Permitted result
+
+Missing Helmet
+
+Compatible helmet-violation class
+
+Missing Vest
+
+Compatible vest-violation class
+
+Fire
+
+Compatible fire/flame class
+
+Smoke
+
+Compatible smoke class
+
+Only loaded and supported models can provide actual predictions.
+
+For example, your face_shield_candidate.pt contains the no_faceshield and no_appron dada classes, but these are still unregistered experimental candidates. The regular AI Test Lab does not automatically treat them as approved live detectors.
+
+To demonstrate those models separately, you can use the already prepared annotated-image outputs from your local YOLO evaluation.
+
+Why is selection important? It makes the AI testing behavior consistent with camera policy. A detection class that is irrelevant to a monitored zone should not appear as a valid safety violation merely because the model knows the label.
+
+4. Offline Video Lab — processing uploaded recordings
+The second part is Offline video safety analysis.
+
+This is different from Live Monitoring.
+
+Live Monitoring processes a currently connected camera. Video Lab processes a recording that already exists as a file.
+
+Your application supports:
+
+Video requirement
+
+Limit
+
+Input formats
+
+MP4, MOV, AVI, MKV, WebM
+
+Maximum upload
+
+350 MB
+
+Maximum duration
+
+20 minutes
+
+Processing
+
+Server-side YOLO inference
+
+Output
+
+Annotated MP4
+
+History
+
+Per-user recent analysis jobs
+
+Some codecs may not be decodable even when the extension is supported. A standard H.264 MP4 is generally the most practical format to test.
+
+How to analyze a recording
+Suppose you have a 30-second demonstration video.
+
+Open AI Test Lab → Offline video safety analysis.
+
+By default, the checkbox Use selected camera checks for uploaded video is enabled. This means the video inherits the saved safety-check policy of the currently selected camera.
+
+You can also uncheck it and use an independent video checklist.
+
+The interface provides Copy selected camera checks, Supported only, Select all, Clear all, and Save video checklist controls for users authorized to change policies.
+
+For a clear demo, choose only a small number of supported checks rather than selecting every catalog item.
+
+After saving the selection, choose your recording and click Analyze video & create marked output.
+
+The system uploads the file to the Python server and creates a background processing job within the running application.
+
+Video processing pipeline
+1
+
+Upload video
+
+Validate format, file size and selected checklist
+
+2
+
+Create job
+
+Assign a unique processing ID and store the selected policy snapshot
+
+3
+
+Open frames
+
+OpenCV decodes the video frames
+
+4
+
+Run YOLO
+
+Compatible models predict selected classes on each frame
+
+5
+
+Annotate frames
+
+Draw labels, confidence and bounding boxes
+
+6
+
+Encode output
+
+Create a new MP4; use FFmpeg for H.264 conversion when available
+
+7
+
+Display results
+
+Show progress, detection counts, preview and download
+
+The system also protects the video-processing queue. Your implementation accepts up to three queued or processing jobs, while only one offline inference job executes at a time.
+
+This prevents multiple large uploads from competing uncontrollably for the same CPU/GPU resources.
+
+What do the video progress values mean?
+During processing you may see a status such as:
+
+Processing video
+
+Example
+120 frames processed
+
+50%
+
+Illustrative example; progress is based on decoded frame processing.
+The job's status can be queued, processing, completed or failed.
+
+The frontend polls the server for progress approximately every 1.6 seconds while the job is active.
+
+If processing completes, it shows the available detection counts and offers Download annotated MP4 and Open output video.
+
+5. Understanding annotated MP4 output
+Your video-processing code uses three important visual categories.
+
+Green — PRESENT
+
+A supported equipment or person class is detected.
+
+Red — VIOLATION
+
+A compatible negative-PPE or hazard class is predicted.
+
+Amber — REVIEW
+
+A possible-smoking observation requires human verification.
+
+These labels identify the type of model observation, not a confirmed real-world event.
+
+The video also includes an overlay indicating:
+
+SAFETYGUARD AI | UNCONFIRMED MODEL DETECTIONS
+
+What does a video detection count mean?
+Suppose the video results show:
+
+Predicted class
+
+Example count
+
+Missing Helmet
+
+45
+
+Missing Vest
+
+20
+
+Worker Presence
+
+180
+
+These are illustrative results.
+
+The counts represent detections across video frames, not 45 different helmet violations or 180 unique employees.
+
+For example, a single worker appearing without a helmet across 45 frames may account for many of those detections.
+
+This is an important limitation to explain to your examiner. The offline video pipeline is primarily an annotation and inference tool, not a complete employee-identification or event-counting system.
+
+Where is the processed video stored?
+The server creates a job directory under:
+
+D:\GEC_SafetyGuard_2026\video_outputs\
+
+It stores job metadata and the annotated MP4. The output can be downloaded by the account that uploaded the video.
+
+Completed analysis history can be reopened after restarting the server, provided the files are still retained.
+
+The project includes retention-cleanup utilities; do not assume test videos should remain stored indefinitely.
+
+6. Difference between Live Monitoring and AI Test Lab
+Capability
+
+Live Monitoring
+
+AI Test Lab
+
+Source
+
+Connected webcam/IP camera
+
+Uploaded photo or recorded video
+
+Processing
+
+While camera runs
+
+On demand
+
+AI models
+
+Enabled live-policy models
+
+Selected supported models
+
+Incident creation
+
+Yes, when event rules are satisfied
+
+No for image/video analysis
+
+Central alerts
+
+Yes
+
+No for image/video analysis
+
+Time-stamped evidence
+
+Available for qualifying live incidents
+
+Separate annotated test output
+
+Supervisor workflow
+
+Can follow recorded incidents
+
+Not automatically triggered
+
+Primary purpose
+
+Monitoring and response
+
+Experimentation and model demonstration
+
+Your previous operational update stamps the camera and capture time on live incident evidence. The offline MP4 pipeline instead marks frames as unconfirmed model detections; it should not be described as the same incident-evidence workflow.
+
+The key distinction: AI Test Lab can demonstrate real model inference without creating a live-camera safety incident.
+
+7. Simulated Sensor Lab — smoke and temperature
+The third section is Simulated sensor experiment.
+
+This is different from YOLO image analysis.
+
+It does not use a physical smoke sensor, temperature probe, Arduino or IoT device.
+
+Instead, an authorized user manually enters a hypothetical sensor reading. The backend evaluates two simple conditions.
+
+Simulated measurement
+
+Threshold
+
+Synthetic incident
+
+Smoke concentration
+
+At least 300 ppm
+
+SMOKE
+
+Temperature
+
+At least 70°C
+
+HIGH_TEMPERATURE
+
+These are illustrative prototype thresholds, not validated industrial safety or exposure limits.
+
+Interactive example
+Try changing the two simulated values below. This demonstration calculates the same basic threshold conditions, but it does not submit anything to your actual SafetyGuard database.
+
+Synthetic Sensor Experiment
+
+Illustration only
+Smoke concentration
+350 ppm
+0 ppm
+Trigger: 300 ppm
+600 ppm
+Temperature
+35°C
+-40°C
+Trigger: 70°C
+120°C
+Result
+
+1 TEST incident
+SMOKE
+
+Practical examples
+A smoke value of 350 ppm and temperature of 35°C generates one simulated SMOKE incident.
+
+A smoke value of 150 ppm and temperature of 85°C generates one simulated HIGH_TEMPERATURE incident.
+
+A smoke value of 350 ppm and temperature of 85°C generates two separate TEST incidents because both conditions are satisfied.
+
+If neither threshold is reached, no incident is generated.
+
+How to run this in your actual project
+Open AI Test Lab → Simulated sensor experiment as Admin or Safety Officer.
+
+Enter the smoke concentration and temperature values, then click Send synthetic reading.
+
+The backend endpoint is:
+
+POST /api/sensors/simulate
+
+When a threshold is crossed, the system inserts an incident with:
+
+{
+  "source": "SIMULATION_SENSOR",
+  "severity": "TEST",
+  "type": "SMOKE"
+}
+
+This example represents one synthetic SMOKE record. A temperature threshold crossing instead uses HIGH_TEMPERATURE.
+
+The UI reports generated incident IDs. You can then find those incidents in the Overview or Incidents page.
+
+Why does synthetic sensor testing create an incident when image/video testing does not?
+Because the sensor experiment is explicitly designed to demonstrate the incident-recording workflow.
+
+Image and video testing demonstrate model inference. Synthetic sensor testing demonstrates how sensor readings could be converted into database events.
+
+But the source and TEST severity ensure the records are not mistaken for confirmed factory hazards.
+
+Your separate Sensor Concept page also presents hypothetical examples of future sensor integration. It is informational; actual sensor hardware is not connected.
+
+8. Security and access permissions
+Your AI Test Lab requires an authenticated SafetyGuard session.
+
+Action
+
+Admin
+
+Operator
+
+Safety Officer
+
+Supervisor
+
+Use image testing in main UI
+
+✓
+
+✓
+
+✓
+
+No main Lab page
+
+Use video testing in main UI
+
+✓
+
+✓
+
+✓
+
+No main Lab page
+
+Change safety-check policies
+
+✓
+
+—
+
+✓
+
+—
+
+Run synthetic sensor experiment
+
+✓
+
+—
+
+✓
+
+—
+
+View own video processing results
+
+✓
+
+✓
+
+✓
+
+No main Lab page
+
+Access another user's uploaded video output
+
+—
+
+—
+
+—
+
+—
+
+Video job results are checked against the uploading account's identity before they are served.
+
+There is one important security distinction: the image and video upload endpoints currently require authentication but do not explicitly restrict their roles to Admin, Operator and Safety Officer. The Supervisor UI hides the Lab, but a directly constructed authenticated API request may still reach those upload endpoints.
+
+For genuine industrial multi-user deployment, that backend role restriction should be tightened. The UI restriction alone is not a sufficient access-control boundary.
+
+Upload security protections
+The code validates uploaded image types, sizes, dimensions and decoding. Video uploads are restricted by extension, size and runtime duration.
+
+Video processing uses generated job identifiers rather than arbitrary client-supplied output paths, and access to completed video jobs is owner-scoped.
+
+However, uploaded worker images and videos can contain sensitive workplace information. Use authorized materials, restrict server access and apply an appropriate retention policy.
+
+9. Troubleshooting common AI Test Lab problems
+Problem
+
+Likely cause
+
+What to do
+
+Image shows no detections
+
+Model cannot recognize objects, confidence threshold or class selection
+
+Check saved camera policy and model capability
+
+Image says unsupported format
+
+File is not a JPEG, PNG or WebP
+
+Convert to a supported image format
+
+Image too large
+
+More than 8 MB or 24 MP
+
+Resize or compress
+
+Video cannot decode
+
+Unsupported codec or malformed media
+
+Convert to a standard H.264 MP4
+
+No safety checks selected
+
+Empty video checklist
+
+Select at least one check
+
+No usable detector
+
+Model missing or incompatible with selected check
+
+Verify model loading and class mapping
+
+Video analysis is slow
+
+CPU inference, multiple models or large video
+
+Test a shorter clip with fewer checks
+
+Video preview fails but download exists
+
+MP4 codec/browser compatibility
+
+Open the downloaded file locally or configure FFmpeg
+
+No incident appears after image/video upload
+
+Expected behavior
+
+Image/video tests do not create live incidents
+
+Operator cannot send sensor reading
+
+Intended permission restriction
+
+Use Admin or Safety Officer
+
+Synthetic incident appears in Analytics
+
+Expected behavior
+
+Its source remains SIMULATION_SENSOR
+
+A useful troubleshooting habit is to confirm three things separately: the model loads, the selected check has a compatible class, and the test image/video visibly contains an object the model was trained to recognize.
+
+10. Complete viva demonstration — without a factory camera
+Because you do not have factory footage, this is a practical way to demonstrate the module using your prepared dataset, a short optional recording and synthetic sensor values.
+
+AI Test Lab Viva Demonstration
+
+Mark each step as you perform it in the application.
+0/12
+
+
+1. Open SafetyGuard
+
+Start the Windows application and log in as Admin.
+
+
+2. Set the policy
+
+Go to Camera Network → Safety checks, select Camera 1, and enable one supported PPE check.
+
+
+3. Open AI Test Lab
+
+Show the Image Lab, Offline Video Analysis and Simulated Sensor Experiment sections.
+
+
+4. Upload an image
+
+Choose a suitable authorized test image and click Analyze photo.
+
+
+5. Explain the prediction
+
+Show any bounding box, predicted label and confidence. Explain why a missing detection does not prove compliance.
+
+
+6. Show the video workflow
+
+If a short permitted MP4 is available, upload it, use the selected camera policy and start analysis. Otherwise explain the flow using the interface.
+
+
+7. Review video output
+
+If a video job was run, show processed frames, class counts and the annotated MP4 download.
+
+
+8. Test a reading below threshold
+
+Enter smoke 100 ppm and temperature 30°C. Show that no TEST incident is created.
+
+
+9. Trigger simulated smoke
+
+Enter smoke 350 ppm and temperature 35°C. Send the reading and record the generated incident ID.
+
+
+10. Trigger simulated temperature
+
+Enter smoke 100 ppm and temperature 80°C. Send the reading and record its TEST incident ID.
+
+
+11. Verify incidents
+
+Open Incidents, find the SIMULATION_SENSOR records and show their source and TEST severity.
+
+
+12. Explain the distinction
+
+State that uploaded image/video inference creates annotated results, while synthetic sensor readings demonstrate the incident workflow.
+
+The most reliable demo for your situation
+You already have a Face Shield/Apron test dataset on Windows. You can use permitted examples to explain the image analysis concept, while remembering that the unregistered candidate classes will not be automatically enabled in the normal AI Test Lab.
+
+For a video demonstration, you can use your previously tested generated MP4 if it is still available, but label it as generated footage and never present it as independent factory validation.
+
+The synthetic sensor workflow is especially reliable for demonstrating the database and response workflow because it does not depend on a webcam or YOLO finding an object.
+
+11. Common viva questions and answers
+Q1. Why is AI Test Lab separate from Live Monitoring?
+
+Because AI Test Lab is for controlled experimentation with uploaded media, while Live Monitoring handles active camera streams and qualifying safety incidents.
+
+Q2. Does uploading an image create an incident?
+
+No. The image endpoint explicitly marks its results as unconfirmed sample analysis.
+
+Q3. Can uploaded videos be downloaded after processing?
+
+Yes. Successful jobs generate an annotated MP4 that the uploading account can download while the retained output exists.
+
+Q4. Is one video frame detection equal to one worker violation?
+
+No. The same object may be detected repeatedly across many frames.
+
+Q5. What happens if a video contains a helmet but no violation?
+
+A compatible positive-class model may show the helmet as present. Failure to detect a helmet does not automatically establish a violation.
+
+Q6. Does the Sensor Lab use physical sensors?
+
+No. It uses manually entered numerical readings and threshold rules.
+
+Q7. Why does the synthetic sensor module create incidents?
+
+To demonstrate how future sensor integration could connect measured conditions to the existing incident database and notification workflow.
+
+Q8. Can I use the 300 ppm smoke threshold in a real factory?
+
+Not as an approved safety threshold. It is an illustrative value in this prototype and has not been established as a validated industrial limit.
+
+Q9. Are Face Shield and Apron fully operational in the Lab?
+
+They have a trained checkpoint with holdout evaluation results, but are not registered as approved live detectors. Separate candidate-model inference can be demonstrated.
+
+Q10. Can AI Test Lab replace field validation?
+
+No. Model performance on selected images or videos does not establish real-world reliability across factory camera positions, lighting, equipment and operating conditions.
+
+12. One-minute viva explanation
+"Our SafetyGuard AI includes an AI Test Lab for testing and demonstrating detection capabilities independently of live factory cameras.
+
+In the Image Lab, an authenticated user can upload a JPEG, PNG or WebP photograph. The backend uses OpenCV and configured YOLO models to identify selected classes and return an annotated image with prediction labels and confidence scores.
+
+The Video Lab accepts recorded footage and processes it frame by frame. It creates a new annotated MP4, displays processing progress and allows the user to download the output. Video detection counts represent observations across frames, not unique workers or confirmed incidents.
+
+We have also implemented a simulated sensor experiment. Users can enter hypothetical smoke and temperature readings, which are checked against configured demonstration thresholds. When a threshold is exceeded, the system creates an incident explicitly labeled as TEST.
+
+Image and video tests do not create live safety incidents. This separation lets us evaluate the AI models and demonstrate the incident workflow without presenting experimental observations as confirmed factory emergencies."
+
+13. What makes AI Test Lab valuable?
+The Image Lab demonstrates single-frame inference. The Video Lab demonstrates offline frame-by-frame inference and annotated output generation. The Sensor Lab demonstrates threshold-based event creation without physical sensors.
+
+Together, these allow you to explain three different ways a safety-monitoring platform can process input, while keeping the results clearly separated from validated industrial operations.
+
+Remember this distinction for your examiner: AI Test Lab tests the detection technology; Live Monitoring observes active cameras; Incident Management handles qualifying events; Analytics reports the records created by those events.

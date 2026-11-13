@@ -1,0 +1,642 @@
+[
+  {
+    "id": "overview",
+    "icon": "shield",
+    "title": "Project Overview & Roles",
+    "kicker": "START HERE",
+    "description": "Understand the GEC Hackathon 2026 problem, the prototype boundaries and the end-to-end safety response.",
+    "fact": "Factory monitoring assistant, not an autonomous safety-certified controller.",
+    "lessons": [
+      {
+        "title": "The industrial safety problem",
+        "summary": "Factories may experience PPE non-compliance, smoke, fire and unsafe access. Human observation can miss events or delay escalation.",
+        "action": "Describe a missed-helmet scenario; identify the worker, camera, zone and responsible safety officer.",
+        "verify": "Point to the corresponding hazard and response capability in the prototype.",
+        "viva": "Why does a monitoring prototype need human review? → A model observation is not a confirmed hazard."
+      },
+      {
+        "title": "Project objectives",
+        "summary": "The hackathon calls for factory, zone, device, worker and incident records; selected hazard identification; timestamped events; and an acknowledgement workflow.",
+        "action": "Map each objective to a visible page or database concept.",
+        "verify": "Distinguish implemented interfaces from aspirational integrations.",
+        "viva": "What does success mean? → Traceable observation and a usable operator response workflow."
+      },
+      {
+        "title": "Factories, zones and devices",
+        "summary": "A factory contains zones and monitoring devices; each camera source belongs to an operational context.",
+        "action": "Sketch Factory → Zone → Camera, then connect a detection to its location.",
+        "verify": "A new incident should retain location and source context.",
+        "viva": "Why is the zone important? → It identifies where action is required."
+      },
+      {
+        "title": "Workers and tracking",
+        "summary": "Tracking associates person detections across nearby frames; it does not establish a legal identity or reliably count unique employees across recordings.",
+        "action": "Show an annotated preview if a compatible person model is active.",
+        "verify": "Explain that a transient tracking ID is not proof of employee identity.",
+        "viva": "Is tracking facial recognition? → No, not by itself."
+      },
+      {
+        "title": "Users and responsibilities",
+        "summary": "Admin configures the system; Operator monitors and acknowledges; Safety Officer manages policies and safety workflows; Supervisor handles assigned investigations within authorized views.",
+        "action": "Sign in with permitted demonstration accounts and compare accessible pages.",
+        "verify": "Check backend permissions as well as hidden menu items.",
+        "viva": "Why RBAC? → It limits sensitive actions and reduces unauthorized changes."
+      },
+      {
+        "title": "Detection versus incident",
+        "summary": "A YOLO prediction has a class and confidence; an incident is a separate recorded workflow event when eligibility rules are met.",
+        "action": "Trace sample input → filtered detection → rule evaluation → incident → acknowledgement.",
+        "verify": "Never describe every bounding box as an incident.",
+        "viva": "Is a detection proof of a violation? → No; rules and human verification matter."
+      },
+      {
+        "title": "Alert and response lifecycle",
+        "summary": "A qualifying event can be recorded, surfaced to operators, acknowledged, assigned, investigated and resolved with audit history.",
+        "action": "Walk through a test or permitted recorded event and identify decision points.",
+        "verify": "Show source, severity, time, status and evidence where present.",
+        "viva": "Why record acknowledgement? → To show somebody received responsibility for a report."
+      },
+      {
+        "title": "Live, uploaded and synthetic sources",
+        "summary": "LIVE_CAMERA observations, UPLOADED_SAMPLE image results and SIMULATION_SENSOR TEST incidents must be interpreted separately.",
+        "action": "Compare the source label in each workflow.",
+        "verify": "Uploaded image/video results are not automatically saved as live incidents.",
+        "viva": "Can test data be called real factory evidence? → No."
+      },
+      {
+        "title": "Prototype limitations",
+        "summary": "The available project context describes a 26-check catalog with limited approved model coverage; field performance and certified use are not established.",
+        "action": "Explain supported checks versus placeholders or unregistered candidate models.",
+        "verify": "Do not claim 26 trained detectors or industrial certification.",
+        "viva": "What is the limitation? → Coverage and real-world validation remain incomplete."
+      },
+      {
+        "title": "One-minute project viva",
+        "summary": "Present problem, architecture, monitoring, incident workflow, analytics and lab testing in a coherent sequence.",
+        "action": "Give a 60-second walkthrough: inputs, AI checks, event handling, human decision and reporting.",
+        "verify": "State which readings and images are synthetic or demonstration-only.",
+        "viva": "What is SafetyGuard AI? → A factory hazard-monitoring and response prototype."
+      }
+    ]
+  },
+  {
+    "id": "cameras",
+    "icon": "camera",
+    "title": "Camera Network & Live Monitoring",
+    "kicker": "LIVE OPERATIONS",
+    "description": "Configure webcams/IP cameras, select safety policies and understand what the live annotated preview actually means.",
+    "fact": "Webcam indices 0–16 and HTTP/HTTPS/RTSP sources were described in the operational workflow.",
+    "lessons": [
+      {
+        "title": "Camera Network page",
+        "summary": "The network registers devices and associates a source with a factory or zone. Multiple cameras can have independent checklists.",
+        "action": "Open Camera Network, choose a camera and review its name, type, source and zone.",
+        "verify": "Show which policy belongs to that exact camera.",
+        "viva": "Do all cameras share one policy? → No, policies are per camera."
+      },
+      {
+        "title": "Webcam index selection",
+        "summary": "A locally connected webcam is opened by a numeric index; documented indices span 0 through 16. Index 0 is often built-in, but device assignment varies.",
+        "action": "Test the candidate index while no conflicting application is holding the device.",
+        "verify": "Show a legitimate frame before treating a camera as connected.",
+        "viva": "Is webcam 0 always external? → No."
+      },
+      {
+        "title": "IP camera address",
+        "summary": "An external network camera can use a supported HTTP, HTTPS or RTSP URL, subject to codecs, credentials, connectivity and authorization.",
+        "action": "Enter the full authorized stream URL without exposing passwords in a demo.",
+        "verify": "Test that the stream decodes; network reachability alone is insufficient.",
+        "viva": "Why can RTSP fail? → URL, network, permissions or decoder issues."
+      },
+      {
+        "title": "Camera-to-zone assignment",
+        "summary": "The selected physical zone supplies operational context for incidents and restricted-area rules.",
+        "action": "Select the camera's monitored zone and save its configuration.",
+        "verify": "Review the incident location to confirm the intended zone.",
+        "viva": "Why store a camera zone? → To route and understand alerts."
+      },
+      {
+        "title": "Per-camera safety checks",
+        "summary": "A policy selects only the checks relevant to the location; a detector must be loaded and mapped to the requested class.",
+        "action": "Enable one supported check, save, and use the same camera in Live Monitoring.",
+        "verify": "Confirm unselected classes are not promoted into chosen-check violations.",
+        "viva": "Does selecting a check guarantee inference? → No, compatible model support is needed."
+      },
+      {
+        "title": "Start and stop streams",
+        "summary": "Starting opens capture and monitoring; stopping should release that stream and end its active processing.",
+        "action": "Start one authorized source, show live frames, stop it and observe the state change.",
+        "verify": "Check camera status before drawing conclusions about missed events.",
+        "viva": "Why stop explicitly? → To release device and compute resources."
+      },
+      {
+        "title": "Preview and inference pipeline",
+        "summary": "Capture retrieves frames, OpenCV decodes, supported YOLO models infer classes, rules filter observations, and the UI renders annotations.",
+        "action": "Point out source feed, detection overlay, label and confidence.",
+        "verify": "Preview performance may favor recent frames instead of displaying stale ones.",
+        "viva": "Is every displayed frame analyzed identically? → Not necessarily under load."
+      },
+      {
+        "title": "Tracking worker observations",
+        "summary": "Temporary person tracks help relate adjacent frames and can support zone entry logic; occlusion and camera transitions break continuity.",
+        "action": "Show one moving person if permitted and explain the displayed track marker.",
+        "verify": "Never infer legal identity from temporary IDs.",
+        "viva": "Can one ID work across all cameras? → Not guaranteed."
+      },
+      {
+        "title": "When a live incident is saved",
+        "summary": "A detector prediction becomes a candidate only if the selected check, event rules and relevant timing conditions agree.",
+        "action": "Demonstrate an authorized qualifying event or explain recorded evidence.",
+        "verify": "Confirm the incident source is associated with the active camera, not an upload.",
+        "viva": "Does one image create a live event? → Only the live-event rules decide."
+      },
+      {
+        "title": "Camera viva demonstration",
+        "summary": "Combine source setup, policy selection, monitoring and alert trace in one short sequence.",
+        "action": "Open Camera Network → enable supported check → start stream → inspect overlay → stop.",
+        "verify": "If no camera is available, use the Test Lab without claiming live-camera validation.",
+        "viva": "What's the difference between camera and video lab? → Live stream versus uploaded recording."
+      }
+    ]
+  },
+  {
+    "id": "models",
+    "icon": "scan",
+    "title": "AI Safety Checks & Model Intelligence",
+    "kicker": "AI EXPLAINED",
+    "description": "Separate requested safety rules from genuinely compatible model classes, predictions and verified hazards.",
+    "fact": "The safety-check catalog includes 26 options; prior operational notes indicated model support for only a subset.",
+    "lessons": [
+      {
+        "title": "Check catalog versus detector",
+        "summary": "A UI check names a desired risk, while a model checkpoint supplies actual classes. The presence of a catalog option does not prove detector availability.",
+        "action": "Compare the selected check with model-registry status.",
+        "verify": "Treat unsupported checks as unsupported rather than inventing boxes.",
+        "viva": "Are all 26 checks trained? → No, the catalog is broader than confirmed model coverage."
+      },
+      {
+        "title": "YOLO inference concept",
+        "summary": "YOLO predicts object bounding boxes, class labels and confidence scores for supported classes.",
+        "action": "Show the input frame, prediction rectangles and filtered output.",
+        "verify": "A score is model confidence, not calibrated probability of a true safety event.",
+        "viva": "What is YOLO used for? → Visual object detection."
+      },
+      {
+        "title": "Positive PPE versus violations",
+        "summary": "Detecting a helmet or vest is not equivalent to proving PPE compliance for every worker. Missing-equipment rules need appropriate negative classes or robust association logic.",
+        "action": "Compare a positive Helmet label with a supported No Helmet violation label.",
+        "verify": "Absence of detection alone must not establish a violation.",
+        "viva": "If no helmet box appears, is the worker non-compliant? → Not necessarily."
+      },
+      {
+        "title": "Per-camera class filtering",
+        "summary": "The pipeline should surface only classes mapped to active checks on the selected camera.",
+        "action": "Enable a helmet-only check and compare it with a broader model's class output.",
+        "verify": "Extra model classes must not silently become unauthorized violations.",
+        "viva": "Why filter? → To reduce irrelevant alerts and preserve policy semantics."
+      },
+      {
+        "title": "Fire and smoke signals",
+        "summary": "Fire/flame and smoke are different checks requiring compatible predictions or sensor rules; neither a colored pixel nor a generic person class is enough.",
+        "action": "Explain the class mapping using example safety footage.",
+        "verify": "Distinguish visual smoke detection from manually entered simulated readings.",
+        "viva": "Is simulation a smoke detector? → No."
+      },
+      {
+        "title": "Confidence and thresholds",
+        "summary": "The confidence value helps interpret model predictions; thresholds trade false positives against missed detections.",
+        "action": "Use a hypothetical score of 0.82 only as an example, never as actual output.",
+        "verify": "Report a model's displayed score only after real inference.",
+        "viva": "Does high confidence equal certainty? → No."
+      },
+      {
+        "title": "Worker tracking concepts",
+        "summary": "A short-lived tracker can associate a person box across frames and support temporal rules. It is not an identity registry.",
+        "action": "Explain how successive person boxes relate to the same moving subject.",
+        "verify": "Tracks can reset after occlusion or camera restart.",
+        "viva": "Is frame count a unique-worker count? → No."
+      },
+      {
+        "title": "Temporal rules and cooldowns",
+        "summary": "Some incidents require persistence across frames and a cooldown to prevent repeated alarms. Restricted-area rules have explicit three-frame and 25-second parameters in this prototype.",
+        "action": "Show the state sequence observe → qualify → cooldown.",
+        "verify": "Do not imply all checks use identical timing rules.",
+        "viva": "Why cooldown? → To reduce duplicate event storms."
+      },
+      {
+        "title": "False positives and review",
+        "summary": "Reflections, lighting, occlusions and weak model coverage can create or hide observations. Human review labels and notes support investigation.",
+        "action": "Show a false-positive workflow through Incident Management.",
+        "verify": "Record why an alert was dismissed instead of deleting its history.",
+        "viva": "Why keep false positives? → They inform system evaluation."
+      },
+      {
+        "title": "Candidate model boundaries",
+        "summary": "Face shield/apron candidate classes exist in experimental checkpoints but are not automatically registered as approved live detectors.",
+        "action": "Explain the separate local inference evaluation and normal registry.",
+        "verify": "Avoid claiming experimental Face Shield and Apron classes are production-ready.",
+        "viva": "Can an unregistered candidate appear in Live Monitoring? → Not automatically."
+      }
+    ]
+  },
+  {
+    "id": "incidents",
+    "icon": "alert",
+    "title": "Incident Management & Supervisor Workflow",
+    "kicker": "RESPONSE CENTER",
+    "description": "Understand incident creation, evidence, acknowledgement, assignment, false positives, escalation and closure.",
+    "fact": "Incidents carry source, type, severity, time, status and relevant evidence or event history.",
+    "lessons": [
+      {
+        "title": "Incident record anatomy",
+        "summary": "An incident is the durable object representing a candidate safety event and its handling lifecycle.",
+        "action": "Open an incident record and identify ID, type, source, severity, camera/zone and timestamps.",
+        "verify": "Verify the visible record is not just a transient bounding box.",
+        "viva": "Which fields make an alert actionable? → What, where, when and current status."
+      },
+      {
+        "title": "Creation and evidence",
+        "summary": "Eligible live rules can save incidents and evidence; simulated sensor rules save clearly marked TEST incidents. Uploaded-image and video lab inference does not save live incidents.",
+        "action": "Compare a live sample record with a SIMULATION_SENSOR record.",
+        "verify": "Verify every sample is correctly labeled.",
+        "viva": "Does Image Lab add incident evidence? → Not automatically."
+      },
+      {
+        "title": "Alert presentation",
+        "summary": "Dashboard notices, browser/audio prompts and configured email channels may surface a recorded event, but they are distinct mechanisms.",
+        "action": "Show an active alert indicator and, where permitted, corresponding notification settings.",
+        "verify": "A recorded incident does not guarantee every delivery channel succeeded.",
+        "viva": "What if email fails? → The incident record remains separate from delivery."
+      },
+      {
+        "title": "Acknowledgement",
+        "summary": "An authorized operator or safety responder acknowledges awareness of a reported incident. Acknowledgement is not the same as fixing the hazard.",
+        "action": "Open a pending incident and use the permitted acknowledge action.",
+        "verify": "Observe user and timestamp in status/history where surfaced.",
+        "viva": "Is acknowledgement resolution? → No."
+      },
+      {
+        "title": "Supervisor assignment",
+        "summary": "Assigned supervisors can investigate events in their authorized scope, rather than gaining unrestricted access to all configuration.",
+        "action": "Assign or inspect an assigned supervisor from the permitted administrative view.",
+        "verify": "Verify role permissions in the interface and backend.",
+        "viva": "Why assign an owner? → To make follow-up responsibility explicit."
+      },
+      {
+        "title": "False-positive decisions",
+        "summary": "A model can misclassify scenes; an authorized reviewer can mark a report false positive and preserve an audit trail.",
+        "action": "Use a documented example and explain the reason for dismissal.",
+        "verify": "Keep original source and decision history for later quality analysis.",
+        "viva": "Why not simply delete it? → Auditability and model improvement."
+      },
+      {
+        "title": "Escalation and timeouts",
+        "summary": "An overdue serious report can qualify for escalation based on enabled rules. The documented default is HIGH+ after 120 seconds.",
+        "action": "Show settings and explain what happens when an incident remains unacknowledged.",
+        "verify": "Treat delivery as separately observable from eligibility.",
+        "viva": "What causes escalation? → Configured severity and delay with no timely acknowledgement."
+      },
+      {
+        "title": "Investigation notes",
+        "summary": "Evidence, findings, probable cause and corrective actions can be recorded as investigation notes by authorized people.",
+        "action": "Demonstrate a concise note such as 'reviewed PPE footage; retraining recommended'.",
+        "verify": "Distinguish factual observation from unverified conclusion.",
+        "viva": "Why store notes? → To document reasoning and actions."
+      },
+      {
+        "title": "Resolution and closure",
+        "summary": "Resolution records the authorized decision that work on an incident is complete. Its audit trail can show prior acknowledgement, assignment and review.",
+        "action": "Open a handled incident and explain its status chronology.",
+        "verify": "Never equate closing the ticket with certified removal of physical risk.",
+        "viva": "What does resolved mean? → Workflow completion, subject to real-world verification."
+      },
+      {
+        "title": "Incident viva walkthrough",
+        "summary": "Trace one sample case from detection to response and audit, optionally using a TEST synthetic incident if no camera is available.",
+        "action": "Create a legitimate demo event → locate incident → acknowledge → assign/review → add notes → resolve.",
+        "verify": "State explicitly whether each step is live, sample, or simulated.",
+        "viva": "What makes it end-to-end? → Event, response, accountability and evidence."
+      }
+    ]
+  },
+  {
+    "id": "analytics",
+    "icon": "chart",
+    "title": "Analytics, Reports & Safety Intelligence",
+    "kicker": "MEASURE & REVIEW",
+    "description": "Interpret incident trends, severity, locations, false positives and response times without overstating the data.",
+    "fact": "Analytics describe stored records. They cannot validate a model or the factory safety state by themselves.",
+    "lessons": [
+      {
+        "title": "Dashboard KPIs",
+        "summary": "Overview cards summarize stored incidents, unresolved workload, severity and recent activity according to current filters.",
+        "action": "Open Analytics and compare a displayed metric with filtered incident records.",
+        "verify": "Check that TEST data and date range are understood.",
+        "viva": "Can a high incident count mean improved detection? → Possibly; context matters."
+      },
+      {
+        "title": "Time-series trends",
+        "summary": "Time-bucketed incident charts help reveal when recorded hazard observations increased or decreased.",
+        "action": "Select a date window and compare daily or weekly bins where available.",
+        "verify": "Interpret trends as counts of records, not independently verified factory accident rates.",
+        "viva": "What is the x-axis? → Time interval."
+      },
+      {
+        "title": "Severity breakdown",
+        "summary": "A severity chart groups incidents by severity class.",
+        "action": "Inspect counts for high, medium, low and TEST where applicable.",
+        "verify": "Do not merge TEST events with confirmed industrial severity without disclosure.",
+        "viva": "Why severity? → To prioritize response."
+      },
+      {
+        "title": "Camera-level activity",
+        "summary": "Per-camera counts can reveal noisy scenes or repeatedly triggered policies.",
+        "action": "Choose a camera and identify its reported events for a timeframe.",
+        "verify": "Normalize by monitoring duration before comparing camera risk.",
+        "viva": "Can camera A's higher count prove it is less safe? → No."
+      },
+      {
+        "title": "Zone and hazard analysis",
+        "summary": "Location and incident-type breakdowns help identify where and what is frequently reported.",
+        "action": "Filter by zone, hazard type and incident source.",
+        "verify": "Verify missing or unmapped zones are not mistaken for safe locations.",
+        "viva": "What is a hotspot? → An area with relatively concentrated recorded events."
+      },
+      {
+        "title": "False-positive rate",
+        "summary": "A useful review metric is dismissed false-positive reports divided by evaluated incidents, with denominator clearly defined.",
+        "action": "Explain the calculation using a hypothetical 4 false positives among 20 reviewed incidents = 20%.",
+        "verify": "Do not report a denominator as total frames or all unreviewed events.",
+        "viva": "Does 20% measure model precision? → Not directly."
+      },
+      {
+        "title": "Response-time metrics",
+        "summary": "Response duration is commonly measured from incident creation to acknowledgement; reporting rules must handle unacknowledged records.",
+        "action": "Compute an illustrative 10:00 → 10:03 acknowledgement as 3 minutes.",
+        "verify": "Clarify whether average includes only acknowledged incidents.",
+        "viva": "What does MTT A mean? → Mean time to acknowledgement."
+      },
+      {
+        "title": "Source segmentation",
+        "summary": "LIVE_CAMERA records, synthetic TEST sensor records and image/video lab results belong to different evidentiary categories.",
+        "action": "Filter or explain groups by source and severity.",
+        "verify": "Uploaded media analysis does not create ordinary incident rows.",
+        "viva": "Why separate simulated events? → To prevent distorted operational conclusions."
+      },
+      {
+        "title": "CSV and evidence review",
+        "summary": "A report export helps review records in Excel and attach supporting analysis to a hackathon presentation.",
+        "action": "Export where available and inspect IDs, times, types, statuses and filters.",
+        "verify": "Remove workplace personal data before public sharing.",
+        "viva": "Are charts a replacement for row-level audit? → No."
+      },
+      {
+        "title": "Analytics viva walkthrough",
+        "summary": "Show overview, date trend, severity, camera activity, false-positive review, response time and source separation.",
+        "action": "Explain one chart with a real record from the demo database.",
+        "verify": "Do not invent numbers: show the current system output or label examples hypothetical.",
+        "viva": "What's the most important caveat? → Metrics reflect collected and classified data."
+      }
+    ]
+  },
+  {
+    "id": "settings",
+    "icon": "settings",
+    "title": "Settings, Zones & Escalation Rules",
+    "kicker": "CONFIGURATION",
+    "description": "Configure restricted-area geometry, rule eligibility, alerts, diagnostics and permissions.",
+    "fact": "Restricted-area logic uses normalized polygons, person-box foot points and temporal safeguards.",
+    "lessons": [
+      {
+        "title": "Roles and setting scope",
+        "summary": "System-wide configuration changes require elevated access; operators generally observe and respond rather than rewiring safety policies.",
+        "action": "Compare authorized Admin/Safety Officer controls with Operator and Supervisor views.",
+        "verify": "Hidden buttons do not replace backend authorization.",
+        "viva": "Who should change policy? → An explicitly authorized configuration role."
+      },
+      {
+        "title": "Draw a restricted polygon",
+        "summary": "A selected camera can have a restricted-area polygon made of 3–12 normalized points.",
+        "action": "Use a frame preview to place a closed boundary around the prohibited zone.",
+        "verify": "Avoid self-intersecting or tiny polygons and save with the correct camera.",
+        "viva": "Why minimum three points? → A planar polygon needs at least three vertices."
+      },
+      {
+        "title": "Normalized coordinates",
+        "summary": "Coordinates are stored proportionally to image dimensions, allowing geometry to scale as the preview resolution changes.",
+        "action": "Explain x = pixel_x/frame_width and y = pixel_y/frame_height.",
+        "verify": "Ensure all saved coordinates map to the intended part of the camera view.",
+        "viva": "Why normalize? → To avoid resolution-specific geometry."
+      },
+      {
+        "title": "Person foot-point test",
+        "summary": "For restricted-zone entry, the system evaluates the bottom-center of a detected person box rather than simply testing any box overlap.",
+        "action": "Draw the person box and mark its lower-center point in the diagram.",
+        "verify": "A partial body overlap should not be described as a confirmed entry by itself.",
+        "viva": "Why bottom-center? → It approximates ground contact."
+      },
+      {
+        "title": "Restricted event timing",
+        "summary": "The documented geofence rule requires three consecutive qualifying frames and a 25-second cooldown before a repeated incident.",
+        "action": "Explain the sequence: track enters → persists → event → cooldown.",
+        "verify": "Point out that these exact settings apply to this rule, not every hazard.",
+        "viva": "Why 3 frames? → To reduce one-frame noise."
+      },
+      {
+        "title": "Camera-specific enablement",
+        "summary": "A polygon alone is not sufficient if the relevant RESTRICTED_ZONE check is not enabled for that camera.",
+        "action": "Enable the matching check, assign the polygon and test with authorized material.",
+        "verify": "Verify the geometry and selected policy correspond to the same source.",
+        "viva": "Why must both be enabled? → Detection requires policy plus zone configuration."
+      },
+      {
+        "title": "Escalation defaults",
+        "summary": "Operational context describes escalation as enabled, eligible at HIGH and above after 120 seconds, subject to installed configuration.",
+        "action": "Show severity selector, timeout and escalation enable flag.",
+        "verify": "Describe it as a configurable workflow rule, not guaranteed external delivery.",
+        "viva": "Does every LOW alert escalate? → Not under the stated default."
+      },
+      {
+        "title": "Notification channels",
+        "summary": "In-app dashboard, audio, browser and email channels have different dependencies and delivery semantics.",
+        "action": "Check each enabled channel and demonstrate the locally supported one.",
+        "verify": "Do not claim an email was received unless delivery is verified.",
+        "viva": "Why separate channels? → One may fail while records still exist."
+      },
+      {
+        "title": "System diagnostics and retention",
+        "summary": "Diagnostics help distinguish camera connectivity, model loading, queue health, logs and stored media retention.",
+        "action": "Check model registry, camera status, backend health and retained output.",
+        "verify": "Remove test media according to the site's retention policy; do not expose raw worker footage.",
+        "viva": "What do diagnostics prove? → System status, not detector accuracy."
+      },
+      {
+        "title": "Settings viva walkthrough",
+        "summary": "Create and review one camera-restricted polygon and explain alert escalation, then restore safe demo settings.",
+        "action": "Show polygon points → enable check → explain foot-point → 3 frames → cooldown → escalate if unresolved.",
+        "verify": "Use illustrations if no authorized footage is available.",
+        "viva": "What could go wrong? → Incorrect geometry, policy or detector support."
+      }
+    ]
+  },
+  {
+    "id": "architecture",
+    "icon": "layers",
+    "title": "Architecture, Database & APIs",
+    "kicker": "UNDER THE HOOD",
+    "description": "Explain how input, inference, business rules, storage, authentication, evidence and reporting are connected.",
+    "fact": "Project components referenced previously include FastAPI, OpenCV, Ultralytics YOLO, Python tracking and SQLite.",
+    "lessons": [
+      {
+        "title": "End-to-end architecture",
+        "summary": "Camera or uploaded media enters the Python server; OpenCV decodes frames; models predict; rules evaluate; approved events reach SQLite and UI endpoints.",
+        "action": "Trace Input → Inference → Policy → Event → Database → Interface.",
+        "verify": "Keep asynchronous notification work separate from the incident decision.",
+        "viva": "Why use layers? → To isolate processing, rules and presentation."
+      },
+      {
+        "title": "API and session protection",
+        "summary": "The web frontend communicates with authenticated Python HTTP endpoints. Role checks should be enforced server-side for privileged actions.",
+        "action": "Explain request → authentication → authorization → handler → response.",
+        "verify": "Do not mistake login UI visibility for API security.",
+        "viva": "Why authenticate the endpoint? → To protect media, incidents and settings."
+      },
+      {
+        "title": "Camera capture services",
+        "summary": "OpenCV capture connects to a selected index or stream URL and converts decoded frames into images for inference.",
+        "action": "Explain start, read, fail/reconnect and stop lifecycle.",
+        "verify": "Invalid stream URLs must not generate fictitious live detections.",
+        "viva": "Why isolate capture? → Different cameras and codecs can fail independently."
+      },
+      {
+        "title": "Model registry and check mapping",
+        "summary": "A model registry records checkpoints and class mappings; safety-check filtering decides which classes a selected policy may use.",
+        "action": "Trace a MISSING_HELMET check to a compatible model class.",
+        "verify": "A declared catalog option does not create missing trained weights.",
+        "viva": "What prevents fabricated results? → Registered compatibility and actual inference."
+      },
+      {
+        "title": "Safety rules and temporal logic",
+        "summary": "Hazard rules convert compatible model observations into possible incidents using configured policy, region and persistence conditions.",
+        "action": "Explain how a restricted-zone rule combines tracker, polygon, 3 frames and cooldown.",
+        "verify": "Keep thresholds specific to their originating rule.",
+        "viva": "Why not save every frame? → It would create duplicate unreviewed alarms."
+      },
+      {
+        "title": "SQLite entity design",
+        "summary": "The previously discussed database includes devices, policies, incidents, evidence, events, supervisors, restricted areas, escalation and outbox records.",
+        "action": "Sketch relationships: Device → Incidents → Evidence/Events; Supervisor ← Assignments.",
+        "verify": "Exact column names require the repository schema; do not invent SQL DDL.",
+        "viva": "Why separate incident events? → Audit history needs multiple actions per record."
+      },
+      {
+        "title": "Evidence and audit trail",
+        "summary": "A qualifying live event may store time-stamped evidence, while a user action appends an auditable workflow change.",
+        "action": "Explain who performed what action, to which incident and when.",
+        "verify": "Check retention and access control for media containing workers.",
+        "viva": "Why preserve history? → Accountability and later investigation."
+      },
+      {
+        "title": "Image analysis API",
+        "summary": "The implemented image-lab endpoint is POST /api/images/analyze; it validates uploaded media, runs supported checks and returns annotated sample output.",
+        "action": "Review fields source=UPLOADED_SAMPLE and saved_as_incident=false.",
+        "verify": "Never call returned sample predictions live event records.",
+        "viva": "Does this endpoint alert the factory? → No."
+      },
+      {
+        "title": "Offline job and sensor APIs",
+        "summary": "Offline video jobs are processed from stored uploads; POST /api/sensors/simulate tests numeric rules and can create TEST records.",
+        "action": "Contrast a media job with a synchronous synthetic reading and its incident IDs.",
+        "verify": "Video owner-scoping, job IDs and queue limits protect processing.",
+        "viva": "How many concurrent video inferences? → One job executes at a time in the cited implementation."
+      },
+      {
+        "title": "Architecture viva walkthrough",
+        "summary": "Explain the major services and connect each one to a visible user action.",
+        "action": "Demonstrate a sample image analysis, then trace a simulated TEST incident into the database-facing UI.",
+        "verify": "State that deployment, scalability and certification are separate future engineering tasks.",
+        "viva": "Why is it a prototype? → It demonstrates a workflow without validated industrial reliability."
+      }
+    ]
+  },
+  {
+    "id": "lab",
+    "icon": "flask",
+    "title": "AI Test Lab: Image, Video & Sensors",
+    "kicker": "MODULE 08 · PRACTICAL",
+    "description": "A hands-on guide to single-image predictions, offline annotated MP4, synthetic sensor thresholds and viva demonstrations.",
+    "fact": "Image/video lab outputs are unconfirmed and not live incidents; sensor experiments create explicitly labeled TEST incidents.",
+    "lessons": [
+      {
+        "title": "What the Lab tests",
+        "summary": "Image Lab evaluates one sample photograph; Video Lab processes a recording; Sensor Lab applies numeric test thresholds. These are separate experimental workflows.",
+        "action": "Open AI Test Lab and identify its three sections.",
+        "verify": "Image/video use supported YOLO inference, sensor simulation does not.",
+        "viva": "Can this replace factory validation? → No."
+      },
+      {
+        "title": "Image formats and limits",
+        "summary": "Valid image uploads accept JPEG, PNG or WebP, up to 8 MB and 24 megapixels; wide images are resized to 1280 pixels and inference runs at size 640.",
+        "action": "Choose an authorized PPE photo, check extension and upload size.",
+        "verify": "The backend decodes actual image content; renaming a bad file is insufficient.",
+        "viva": "What output appears? → Annotated JPEG and detection data."
+      },
+      {
+        "title": "Image prediction workflow",
+        "summary": "Select Camera 1 and a supported check such as MISSING_HELMET, save the camera policy, then click Analyze photo.",
+        "action": "Identify predicted label, bounding box, confidence, chosen checks and potential violations.",
+        "verify": "Missing detections do not prove compliance; no actual score is predetermined.",
+        "viva": "Is confidence a safety guarantee? → No."
+      },
+      {
+        "title": "Image endpoint and response",
+        "summary": "POST /api/images/analyze validates and decodes, selects compatible models, filters classes and returns a Base64 JPEG with a sample-analysis warning.",
+        "action": "Read the sample-response fields UPLOADED_SAMPLE and saved_as_incident=false.",
+        "verify": "Confirm no central incident or notification is created by this image test.",
+        "viva": "Why no incident? → It is controlled offline inference."
+      },
+      {
+        "title": "Choose supported checks",
+        "summary": "Camera policy limits the labels that can be reported; only registered compatible model classes should be considered. Experimental face-shield/apron candidate weights are not automatically approved.",
+        "action": "Compare a helmet-only selection with the model class list.",
+        "verify": "Do not claim all catalog checks have working trained detectors.",
+        "viva": "What if no detector is usable? → Show the compatibility problem, not a false prediction."
+      },
+      {
+        "title": "Video formats and limits",
+        "summary": "The offline lab accepts MP4, MOV, AVI, MKV or WebM, up to 350 MB and 20 minutes, depending on decode support. Standard H.264 MP4 is a practical demo choice.",
+        "action": "Prepare a short authorized clip, check its codec and use the selected camera checks or saved independent checklist.",
+        "verify": "A supported extension does not guarantee decoder compatibility.",
+        "viva": "What gets generated? → Annotated MP4 when the job succeeds."
+      },
+      {
+        "title": "Video processing job",
+        "summary": "Video upload creates a queued job; OpenCV decodes frames, YOLO predicts supported classes, annotations are drawn and a new MP4 is encoded.",
+        "action": "Track job status queued → processing → completed/failed, frame progress and class counts.",
+        "verify": "Only one offline inference job executes at once; the queue admits up to three active/queued jobs.",
+        "viva": "What does progress mean? → Frames processed, not percent of safety achieved."
+      },
+      {
+        "title": "Understand video outputs",
+        "summary": "Annotated footage distinguishes PRESENT (green), VIOLATION (red) and REVIEW (amber), with an UNCONFIRMED MODEL DETECTIONS overlay. Successful runs offer preview and download.",
+        "action": "Show the saved MP4 and explain detections across frames.",
+        "verify": "Forty-five missing-helmet detections may come from one repeatedly observed person.",
+        "viva": "Are frame counts unique incidents? → No."
+      },
+      {
+        "title": "Synthetic smoke and heat",
+        "summary": "An authorized Admin or Safety Officer enters manual values. Smoke >=300 ppm creates SMOKE TEST; temperature >=70°C creates HIGH_TEMPERATURE TEST. These are prototype thresholds, not approved industrial limits.",
+        "action": "Try 100 ppm/30°C (none), 350/35 (SMOKE) and 100/80 (HIGH_TEMPERATURE).",
+        "verify": "Check source=SIMULATION_SENSOR and severity=TEST in Incidents.",
+        "viva": "Is a physical sensor connected? → No."
+      },
+      {
+        "title": "Security and complete lab viva",
+        "summary": "Lab access is authenticated. Main UI provides Image/Video to Admin, Operator and Safety Officer; synthetic reading and policy change to Admin/Safety Officer. Some upload API role checks need tightening.",
+        "action": "Demonstrate image → optional short video → synthetic below threshold → synthetic above threshold → inspect TEST record.",
+        "verify": "Owner-scoped video files, valid upload bounds, proper retention and backend RBAC must be discussed.",
+        "viva": "What is the central distinction? → Uploaded media tests models; synthetic readings test event recording."
+      }
+    ]
+  }
+]
